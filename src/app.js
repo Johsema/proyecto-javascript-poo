@@ -29,17 +29,28 @@ const motivationalQuotes = [
 
 let dailyQuoteText = getRandomQuote();
 
-function createHabitObject(name, frequency) {
-  return {
-    id: ++habitIdCounter,
-    name: name,
-    frequency: frequency,
-    createdAt: new Date().toISOString(),
-    rename: function (newName) {
-      this.name = newName;
-    },
-  };
+// function createHabitObject(name, frequency) {
+//   return {
+//     id: ++habitIdCounter,
+//     name: name,
+//     frequency: frequency,
+//     createdAt: new Date().toISOString(),
+//     rename: function (newName) {
+//       this.name = newName;
+//     },
+//   };
+// }
+
+function Habit(name, frequency) {
+  this.id = ++habitIdCounter;
+  this.name = name;
+  this.frequency = frequency;
+  this.createdAt = new Date().toISOString();
 }
+
+Habit.prototype.rename = function rename(newName) {
+  this.name = newName;
+};
 
 function addHabit(name, frequency) {
   if (habits.length >= MAX_HABITS) {
@@ -52,7 +63,7 @@ function addHabit(name, frequency) {
     return null;
   }
 
-  const habit = createHabitObject(name.trim(), frequency);
+  const habit = new Habit(name.trim(), frequency);
   habits.push(habit);
   return habit;
 }
