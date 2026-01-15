@@ -41,16 +41,32 @@ let dailyQuoteText = getRandomQuote();
 //   };
 // }
 
-function Habit(name, frequency) {
-  this.id = ++habitIdCounter;
-  this.name = name;
-  this.frequency = frequency;
-  this.createdAt = new Date().toISOString();
-}
+// function Habit(name, frequency) {
+//   this.id = ++habitIdCounter;
+//   this.name = name;
+//   this.frequency = frequency;
+//   this.createdAt = new Date().toISOString();
+// }
 
-Habit.prototype.rename = function rename(newName) {
-  this.name = newName;
-};
+// Habit.prototype.rename = function rename(newName) {
+//   this.name = newName;
+// };
+
+class Habit {
+  constructor(name, frequency) {
+    this.id = Habit.createId();
+    this.name = name;
+    this.frequency = frequency;
+    this.createdAt = new Date().toISOString();
+  }
+  rename(newName) {
+    this.name = newName;
+  }
+
+  static createId() {
+    return Date.now() + Math.floor(Math.random() * 1000);
+  }
+}
 
 function addHabit(name, frequency) {
   if (habits.length >= MAX_HABITS) {
