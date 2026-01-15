@@ -1,8 +1,6 @@
 const MAX_HABITS = 5;
 
 const habits = [];
-const logs = [];
-let habitIdCounter = 0;
 
 const motivationalQuotes = [
   'La fuerza no viene de la capacidad. Viene de la voluntad.',
@@ -29,70 +27,94 @@ const motivationalQuotes = [
 
 let dailyQuoteText = getRandomQuote();
 
-// function createHabitObject(name, frequency) {
-//   return {
-//     id: ++habitIdCounter,
-//     name: name,
-//     frequency: frequency,
-//     createdAt: new Date().toISOString(),
-//     rename: function (newName) {
-//       this.name = newName;
-//     },
-//   };
-// }
+class LogTracker {
+  #dates = [];
 
-// function Habit(name, frequency) {
-//   this.id = ++habitIdCounter;
-//   this.name = name;
-//   this.frequency = frequency;
-//   this.createdAt = new Date().toISOString();
-// }
+  addLog(date) {
+    if (typeof date !== 'string' || date.length !== 10) {
+      return null;
+    }
+    this.#dates.push(date);
+    return date;
+  }
 
-// Habit.prototype.rename = function rename(newName) {
-//   this.name = newName;
-// };
+  getLogs() {
+    return [...this.#dates];
+  }
+
+  removeLog(date) {
+    const index = this.#dates.findIndex((d) => d === date);
+    if (index !== -1) {
+      this.#dates.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+}
 
 class Habit {
   #name;
   #frequency;
   #id;
+  #tracker;
 
   constructor(name, frequency) {
     this.#id = Habit.createId();
     this.name = name;
     this.frequency = frequency;
     this.createdAt = new Date().toISOString();
-  }
-  rename(newName) {
-    this.name = newName;
+    this.#tracker = new LogTracker();
   }
 
   get name() {
     return this.#name;
   }
 
+  set name(value) {
+    const normalized = value.trim();
+    if (normalized.length < 3) {
+      throw new Error('El nombre del hábito debe tener al menos 3 caracteres.');
+    }
+    this.#name = normalized;
+  }
+
   get frequency() {
     return this.#frequency;
+  }
+
+  set frequency(value) {
+    const validFrequencies = ['daily', 'weekly'];
+    if (!validFrequencies.includes(value)) {
+      throw new Error('La frecuencia debe ser "daily" o "weekly".');
+    }
+    this.#frequency = value;
   }
 
   get id() {
     return this.#id;
   }
 
-  set name(value) {
-    const normalized = value.trim();
-    if (normalized.length < 3) {
-      throw new Error('El nombre del Hábito debe de tener al menos 3 caracteres.');
-    }
-    this.#name = normalized;
+  rename(newName) {
+    this.name = newName;
   }
 
-  set frequency(value) {
-    const validFrequencies = ['daily', 'weekly']; // invariantes
-    if (!validFrequencies.includes(value)) {
-      throw new Error('La frecuencia debe de ser "daily" o "weekly');
+  registerCheckIn(date) {
+    const created = this.#tracker.addLog(date);
+    if (!created) {
+      return null;
     }
-    this.#frequency = value;
+    return {
+      habitId: this.id,
+      date: created,
+    };
+  }
+
+  getLogs() {
+    return this.#tracker.getLogs();
+  }
+
+  removeCheckIn(date) {
+    return this.#tracker.removeLog(date);
   }
 
   static createId() {
@@ -129,28 +151,22 @@ function logHabit(habitId, date) {
     return null;
   }
 
-  const logEntry = {
-    habitId: habitId,
-    habitName: habit.name,
-    date: date,
-    timestamp: new Date().toISOString(),
-  };
-
-  logs.push(logEntry);
-  return logEntry;
+  return habit.registerCheckIn(date);
 }
 
 function getStatistics() {
   const totalHabits = habits.length;
-  const totalCheckIns = logs.length;
+  let totalCheckIns = 0;
+
+  const habitCounts = {};
+  habits.forEach((habit) => {
+    const logs = habit.getLogs();
+    totalCheckIns += logs.length;
+    habitCounts[habit.name] = logs.length;
+  });
 
   let mostActiveHabit = '-';
-  if (logs.length > 0) {
-    const habitCounts = {};
-    logs.forEach((log) => {
-      habitCounts[log.habitName] = (habitCounts[log.habitName] || 0) + 1;
-    });
-
+  if (totalCheckIns > 0) {
     mostActiveHabit = Object.entries(habitCounts).sort((a, b) => b[1] - a[1])[0][0];
   }
 
@@ -210,8 +226,8 @@ function renderHabits() {
           <span class="habit-day">${dayLabel}</span>
           ${habits
             .map((habit) => {
-              const habitLogs = logs.filter((log) => log.habitId === habit.id);
-              const isChecked = habitLogs.some((log) => log.date === date);
+              const habitLogs = habit.getLogs();
+              const isChecked = habitLogs.includes(date);
               return `<div class="habit-checkbox ${isChecked ? 'checked' : ''}" 
                          data-habit-id="${habit.id}" 
                          data-date="${date}"></div>`;
@@ -268,9 +284,9 @@ function attachCheckboxListeners() {
 }
 
 function removeLog(habitId, date) {
-  const index = logs.findIndex((log) => log.habitId === habitId && log.date === date);
-  if (index !== -1) {
-    logs.splice(index, 1);
+  const habit = habits.find((h) => h.id === habitId);
+  if (habit) {
+    habit.removeCheckIn(date);
   }
 }
 
@@ -394,7 +410,8 @@ function initApp() {
 
     const log = logHabit(habitId, date);
     if (log) {
-      showMessage(`Check-in registrado para ${log.habitName}`, 'success');
+      const habit = habits.find((h) => h.id === habitId);
+      showMessage(`Check-in registrado para ${habit.name}`, 'success');
       renderHabits();
       closeModal('registerModal');
     }
@@ -404,7 +421,7 @@ function initApp() {
   renderQuote();
 
   console.log('Habit Tracker inicializado');
-  console.log('Clase 1: Fundamentos de POO - Objetos literales y modelado básico');
+  console.log('Clase 06: Composición vs Herencia');
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
