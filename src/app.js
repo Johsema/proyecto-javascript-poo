@@ -53,14 +53,46 @@ let dailyQuoteText = getRandomQuote();
 // };
 
 class Habit {
+  #name;
+  #frequency;
+  #id;
+
   constructor(name, frequency) {
-    this.id = Habit.createId();
+    this.#id = Habit.createId();
     this.name = name;
     this.frequency = frequency;
     this.createdAt = new Date().toISOString();
   }
   rename(newName) {
     this.name = newName;
+  }
+
+  get name() {
+    return this.#name;
+  }
+
+  get frequency() {
+    return this.#frequency;
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  set name(value) {
+    const normalized = value.trim();
+    if (normalized.length < 3) {
+      throw new Error('El nombre del Hábito debe de tener al menos 3 caracteres.');
+    }
+    this.#name = normalized;
+  }
+
+  set frequency(value) {
+    const validFrequencies = ['daily', 'weekly']; // invariantes
+    if (!validFrequencies.includes(value)) {
+      throw new Error('La frecuencia debe de ser "daily" o "weekly');
+    }
+    this.#frequency = value;
   }
 
   static createId() {
@@ -79,9 +111,14 @@ function addHabit(name, frequency) {
     return null;
   }
 
-  const habit = new Habit(name.trim(), frequency);
-  habits.push(habit);
-  return habit;
+  try {
+    const habit = new Habit(name.trim(), frequency);
+    habits.push(habit);
+    return habit;
+  } catch (error) {
+    showMessage(error.message, 'error');
+    return null;
+  }
 }
 
 function logHabit(habitId, date) {
