@@ -159,17 +159,22 @@ class Habit {
   #frequency;
   #id;
   #tracker;
+  #createdAt;
 
   constructor(name, frequency) {
     this.#id = Habit.createId();
     this.name = name;
     this.frequency = frequency;
-    this.createdAt = new Date().toISOString();
+    this.#createdAt = new Date().toISOString();
     this.#tracker = new LogTracker();
   }
 
   get name() {
     return this.#name;
+  }
+
+  get createdAt() {
+    return this.#createdAt;
   }
 
   set name(value) {
@@ -234,6 +239,14 @@ class Habit {
   static createId() {
     return Date.now() + Math.floor(Math.random() * 1000);
   }
+
+  static daily(name) {
+    return new Habit(name, 'daily');
+  }
+
+  static weekly(name) {
+    return new Habit(name, 'weekly');
+  }
 }
 
 class TimedHabit extends Habit {
@@ -258,6 +271,14 @@ class TimedHabit extends Habit {
   toDisplayString() {
     const baseString = super.toDisplayString();
     return `${baseString} ${this.#targetMinutes} `;
+  }
+
+  static daily(name, targetMinutes) {
+    return new TimedHabit(name, 'daily', targetMinutes);
+  }
+
+  static weekly(name, targetMinutes) {
+    return new TimedHabit(name, 'weekly', targetMinutes);
   }
 }
 
@@ -560,19 +581,25 @@ function initApp() {
   renderQuote();
 
   console.log('Habit Tracker inicializado');
-  const demoHabit1 = new Habit('Leer', 'daily');
+  const demoHabit1 = Habit.daily('Leer');
   demoHabit1.registerCheckIn('2026-01-10');
   demoHabit1.registerCheckIn('2026-01-11');
   demoHabit1.registerCheckIn('2026-01-12');
 
-  const demoHabit2 = new Habit('Ejercicio', 'weekly');
+  const demoHabit2 = Habit.weekly('Ejercicio');
   demoHabit2.registerCheckIn('2026-01-06');
   demoHabit2.registerCheckIn('2026-01-13');
+
+  const demoHabit3 = TimedHabit.daily('Meditar', 20);
+  demoHabit3.registerCheckIn('2026-01-10');
+  demoHabit3.registerCheckIn('2026-01-11');
+  demoHabit3.registerCheckIn('2026-01-12');
 
   console.log('Hábito diario:', demoHabit1.toDisplayString());
   console.log('Racha diaria:', demoHabit1.calculateStreak(new Date('2026-01-13')));
   console.log('Hábito semanal:', demoHabit2.toDisplayString());
   console.log('Racha semanal:', demoHabit2.calculateStreak(new Date('2026-01-13')));
+  console.log('Hábito con tiempo:', demoHabit3.toDisplayString());
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
