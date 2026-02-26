@@ -1,13 +1,33 @@
 {
   "name": "js-habits",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Proyecto del curso de Programación Orientada a Objetos (POO) en JavaScript",
+  "main": "src/app.js",
+  "keywords": [
+    "javascript",
+    "fundamentos",
+    "retos",
+    "platzi",
+    "variables",
+    "funciones",
+    "bucles",
+    "scope",
+    "template-literals",
+    "condicionales"
+  ],
+  "author": {
+    "name": "Oscar Barajas @gndx"
+  },
+  "contributors": [
+    {
+      "name": "Oscar Barajas @gndx",
+      "email": "oscar@gndx.dev",
+      "url": "https://gndx.dev"
+    }
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs"
 }

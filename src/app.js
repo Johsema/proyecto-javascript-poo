@@ -27,6 +27,29 @@ const motivationalQuotes = [
 
 let dailyQuoteText = getRandomQuote();
 
+class Error {
+  message;
+  stack;
+  name = 'Error';
+}
+
+class DomainError extends Error {
+  constructor(message, code) {
+    super(message);
+    this.name = 'DomainError';
+    this.code = code;
+  }
+}
+
+const ERROR_CODES = {
+  INVALID_NAME: 'INVALID_NAME',
+  INVALID_FREQUENCY: 'INVALID_FREQUECTY',
+  DUPLICATE_CHECKIN: 'DUPLICATE_CHECKIN',
+  INVALID_DATE: 'INVALID_DATE',
+  FUTURE_DATE: 'FUTURE_DATE',
+  INVALID_TARGET_MINUTES: 'INVALID_TARGET_MINUTES',
+};
+
 class LogTracker {
   #dates = [];
 
@@ -180,7 +203,10 @@ class Habit {
   set name(value) {
     const normalized = value.trim();
     if (normalized.length < 3) {
-      throw new Error('El nombre del hábito debe tener al menos 3 caracteres.');
+      throw new DomainError(
+        'El nombre del hábito debe tener al menos 3 caracteres.',
+        ERROR_CODES.INVALID_NAME,
+      );
     }
     this.#name = normalized;
   }
@@ -192,7 +218,10 @@ class Habit {
   set frequency(value) {
     const validFrequencies = ['daily', 'weekly'];
     if (!validFrequencies.includes(value)) {
-      throw new Error('La frecuencia debe ser "daily" o "weekly".');
+      throw new DomainError(
+        'La frecuencia debe ser "daily" o "weekly".',
+        ERROR_CODES.INVALID_FREQUENCY,
+      );
     }
     this.#frequency = value;
   }
